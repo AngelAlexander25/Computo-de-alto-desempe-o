@@ -1,2 +1,9 @@
-requirements.txt
-nginx
+kagglehub
+matplotlib
+pandas
+numpy
+seaborn
+scikit-learn
+scipy
+statsmodels
+tensorflow
