@@ -23,20 +23,8 @@ plt.xlabel('Temporada')
 plt.ylabel('Número de Goles')
 plt.tight_layout()
 
-# Guardar en la carpeta docs
+# Guardar imagen en la carpeta docs sin sobrescribir index.html
 os.makedirs("docs", exist_ok=True)
 plt.savefig("docs/goals_by_season.png")
 
-# Crear HTML simple
-with open("docs/index.html", "w") as f:
-    f.write("""
-    <html>
-      <head>
-        <title>Gráfico de Goles de Messi</title>
-      </head>
-      <body>
-        <h1>Goles de Lionel Messi por Temporada (F.C. Barcelona)</h1>
-        <img src="goals_by_season.png" alt="Gráfico de goles">
-      </body>
-    </html>
-    """)
+print("✅ Gráfico generado en docs/goals_by_season.png")
