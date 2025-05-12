@@ -1,33 +1,5 @@
-name: Deploy Graph to GitHub Pages
-
-on:
-  push:
-    branches: [ main ]
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Clonar repositorio
-      uses: actions/checkout@v3
-
-    - name: Configurar Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.10'
-
-    - name: Instalar dependencias
-      run: |
-        pip install kagglehub pandas matplotlib
-
-    - name: Ejecutar script de generación
-      run: python script.py
-
-    - name: Subir cambios (gráfico) a GitHub
-      run: |
-        git config --global user.name "github-actions"
-        git config --global user.email "github-actions@github.com"
-        git add docs/
-        git commit -m "Actualizar gráfico automáticamente" || echo "No hay cambios"
-        git push
+      - name: Mover HTML e imagen a docs/
+        run: |
+          mkdir -p docs
+          cp index.html docs/
+          mv messi_plot.png docs/

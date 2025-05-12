@@ -1,4 +1,4 @@
-elasticsearch
 pandas
-matplotlib
-numpy
+elasticsearch
+plotly
+kaleido

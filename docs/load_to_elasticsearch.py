@@ -1,13 +1,21 @@
-from elasticsearch import Elasticsearch
 import pandas as pd
+from elasticsearch import Elasticsearch
 
-# Conectar con Elasticsearch especificando el esquema http
-es = Elasticsearch([{'host': 'localhost', 'port': 9201, 'scheme': 'http'}])
+# Leer CSV
+df = pd.read_csv("messi_barca.csv")
 
-# Cargar el dataset (asegúrate de que el archivo CSV esté en la misma carpeta que este script)
-df = pd.read_csv('messi-barca.csv')
+# Conexión a Elasticsearch
+es = Elasticsearch("http://localhost:9200")
 
-# Indexar cada fila en Elasticsearch
-for index, row in df.iterrows():
-    doc = row.to_dict()
-    es.index(index="lionel_messi_data", document=doc)
+# Nombre del índice
+index_name = "messi_barcelona_stats"
+
+# Eliminar si ya existe
+if es.indices.exists(index=index_name):
+    es.indices.delete(index=index_name)
+
+# Insertar fila por fila
+for _, row in df.iterrows():
+    es.index(index=index_name, document=row.to_dict())
+
+print("Datos cargados en Elasticsearch.")
