@@ -5,7 +5,7 @@ import pandas as pd
 es = Elasticsearch([{'host': 'localhost', 'port': 9201, 'scheme': 'http'}])
 
 # Cargar el dataset (asegúrate de que el archivo CSV esté en la misma carpeta que este script)
-df = pd.read_csv('messi barca.csv')
+df = pd.read_csv('messi-barca.csv')
 
 # Indexar cada fila en Elasticsearch
 for index, row in df.iterrows():
