@@ -2,7 +2,7 @@ import pandas as pd
 import plotly.express as px
 
 # Leer dataset
-df = pd.read_csv("messi_barca.csv")
+df = pd.read_csv("messi-barca.csv")
 df['Temporada'] = df['Temporada'].astype(str)
 df['Goles'] = pd.to_numeric(df['Goles'], errors='coerce')
 
