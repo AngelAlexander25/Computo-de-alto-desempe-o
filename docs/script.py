@@ -25,6 +25,6 @@ plt.tight_layout()
 
 # Guardar imagen en la carpeta docs sin sobrescribir index.html
 os.makedirs("docs", exist_ok=True)
-plt.savefig("docs/goals_by_season.png")
+plt.savefig("goals_by_season.png")
 
 print("✅ Gráfico generado en docs/goals_by_season.png")
