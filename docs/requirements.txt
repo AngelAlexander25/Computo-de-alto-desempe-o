@@ -1,9 +1,4 @@
-kagglehub
-matplotlib
+elasticsearch
 pandas
+matplotlib
 numpy
-seaborn
-scikit-learn
-scipy
-statsmodels
-tensorflow
