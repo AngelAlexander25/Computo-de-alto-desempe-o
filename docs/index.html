@@ -4,11 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Messi en el Barça</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="style.css">
+    <!-- Añadir Chart.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 </head>
 <body>
-    <h1>Messi en el Barça</h1>
-    <div id="chart-container"></div> <!-- Aquí se mostrará el gráfico -->
-    <script src="script.js"></script>
+    <header>
+        <h1>Estadísticas de Lionel Messi en FC Barcelona</h1>
+        <p>Análisis de rendimiento durante su carrera en el club (2004-2020)</p>
+    </header>
+    
+    <main>
+        <div class="chart-container">
+            <canvas id="chart"></canvas>
+        </div>
+        
+        <div class="stats-summary">
+            <h2>Resumen de carrera</h2>
+            <p>Visualización de datos de goles y asistencias por temporada en La Liga</p>
+        </div>
+    </main>
+    
+    <footer>
+        <p>Datos extraídos de estadísticas oficiales de La Liga y Champions League</p>
+    </footer>
+    
+    <!-- Referencia correcta al script -->
+    <script src="app.js"></script>
 </body>
 </html>

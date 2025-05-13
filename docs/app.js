@@ -1,38 +1,42 @@
-// New app.js that works on GitHub Pages by using local data file instead of Elasticsearch
+// Script principal para la visualización de datos de Messi
 document.addEventListener('DOMContentLoaded', function() {
   const chartCtx = document.getElementById("chart").getContext("2d");
   
-  // Load data directly from the JSON file instead of Elasticsearch
+  // Cargar datos directamente desde el archivo JSON
   fetch("data/messi_barcelona_clean.json")
     .then(response => {
       if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
+        throw new Error(`Error HTTP! Estado: ${response.status}`);
       }
       return response.text();
     })
     .then(text => {
-      // Parse the JSONL format (each line is a separate JSON object)
+      // Procesar el formato JSONL (cada línea es un objeto JSON separado)
       const lines = text.trim().split('\n');
-      const data = lines.map(line => JSON.parse(line));
+      const jsonData = lines.map(line => JSON.parse(line));
       
-      // Process the data for visualization
-      return processData(data);
+      // Procesar los datos para la visualización
+      return processData(jsonData);
     })
     .then(chartData => {
       createChart(chartData, chartCtx);
     })
     .catch(error => {
-      console.error("Error loading data:", error);
-      document.getElementById("chart-container").innerHTML = 
-        `<p>Error cargando datos: ${error.message}</p>`;
+      console.error("Error cargando datos:", error);
+      document.querySelector(".chart-container").innerHTML = 
+        `<div class="error-message">
+          <h3>Error al cargar los datos</h3>
+          <p>${error.message}</p>
+          <p>Ruta intentada: data/messi_barcelona_clean.json</p>
+        </div>`;
     });
 });
 
 function processData(data) {
-  // Group data by season and competition
+  // Filtrar solo datos de La Liga
   const laLigaData = data.filter(item => item.competition === "La Liga");
   
-  // Sort by season
+  // Ordenar por temporada
   laLigaData.sort((a, b) => {
     const seasonA = parseInt(a.season.split('-')[0]);
     const seasonB = parseInt(b.season.split('-')[0]);
@@ -42,44 +46,71 @@ function processData(data) {
   return {
     seasons: laLigaData.map(item => item.season),
     goals: laLigaData.map(item => item.goals_scored),
-    assists: laLigaData.map(item => item.assists)
+    assists: laLigaData.map(item => item.assists),
+    minutes: laLigaData.map(item => item.minutes_played)
   };
 }
 
 function createChart(data, ctx) {
+  const goalColor = 'rgba(165, 0, 68, 0.8)'; // Barça red
+  const assistColor = 'rgba(0, 77, 152, 0.8)'; // Barça blue
+  
   new Chart(ctx, {
     type: "bar",
     data: {
       labels: data.seasons,
       datasets: [
         {
-          label: "Goles por temporada",
+          label: "Goles",
           data: data.goals,
-          backgroundColor: "rgba(255, 99, 132, 0.7)",
-          borderColor: "rgba(255, 99, 132, 1)",
+          backgroundColor: goalColor,
+          borderColor: goalColor.replace('0.8', '1'),
           borderWidth: 1
         },
         {
-          label: "Asistencias por temporada",
+          label: "Asistencias",
           data: data.assists,
-          backgroundColor: "rgba(54, 162, 235, 0.7)",
-          borderColor: "rgba(54, 162, 235, 1)",
+          backgroundColor: assistColor,
+          borderColor: assistColor.replace('0.8', '1'),
           borderWidth: 1
         }
       ]
     },
     options: {
       responsive: true,
+      maintainAspectRatio: false,
       plugins: {
         title: {
           display: true,
-          text: 'Estadísticas de Messi en La Liga por temporada',
+          text: 'Rendimiento de Messi en La Liga por temporada',
           font: {
-            size: 16
+            size: 18,
+            weight: 'bold'
+          },
+          padding: {
+            top: 10,
+            bottom: 20
           }
         },
         legend: {
           position: 'top'
+        },
+        tooltip: {
+          callbacks: {
+            afterLabel: function(context) {
+              const index = context.dataIndex;
+              const minutes = data.minutes[index];
+              const datasetLabel = context.dataset.label;
+              
+              if (datasetLabel === "Goles") {
+                const goalsPerMin = (data.goals[index] / minutes * 90).toFixed(2);
+                return `Goles por 90 min: ${goalsPerMin}`;
+              } else {
+                const assistsPerMin = (data.assists[index] / minutes * 90).toFixed(2);
+                return `Asistencias por 90 min: ${assistsPerMin}`;
+              }
+            }
+          }
         }
       },
       scales: {
@@ -88,12 +119,19 @@ function createChart(data, ctx) {
           title: {
             display: true,
             text: 'Cantidad'
+          },
+          grid: {
+            display: true,
+            color: 'rgba(0, 0, 0, 0.05)'
           }
         },
         x: {
           title: {
             display: true,
             text: 'Temporada'
+          },
+          grid: {
+            display: false
           }
         }
       }
