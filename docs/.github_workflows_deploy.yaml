@@ -1,5 +1,0 @@
-      - name: Mover HTML e imagen a docs/
-        run: |
-          mkdir -p docs
-          cp index.html docs/
-          mv messi_plot.png docs/
