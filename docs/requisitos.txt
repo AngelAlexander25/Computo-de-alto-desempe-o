@@ -1,4 +1,0 @@
-pandas>=1.3.0
-elasticsearch>=8.0.0
-matplotlib>=3.4.0
-seaborn>=0.11.0
