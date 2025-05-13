@@ -3,25 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Messi en el Barça</title>
-    <link rel="stylesheet" href="style.css">
-    <!-- Añadir Chart.js -->
+    <title>Estadísticas de Lionel Messi en FC Barcelona</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+        }
+        
+        header {
+            background-color: #004d98; /* Barça blue */
+            color: white;
+            text-align: center;
+            padding: 2rem 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .chart-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            height: 400px;
+        }
+        
+        .stats-summary {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        h2 {
+            color: #a50044; /* Barça red */
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 0.5rem;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 1rem;
+            background-color: #f0f0f0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .error-message {
+            background-color: #fee2e2;
+            border: 1px solid #ef4444;
+            color: #b91c1c;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+    </style>
 </head>
 <body>
     <header>
-        <h1>Estadísticas de Lionel Messi en FC Barcelona</h1>
-        <p>Análisis de rendimiento durante su carrera en el club (2004-2020)</p>
+        <h1 class="text-3xl font-bold">Estadísticas de Lionel Messi en FC Barcelona</h1>
+        <p class="mt-2">Análisis de rendimiento durante su carrera en el club (2004-2020)</p>
     </header>
     
-    <main>
+    <main class="container mx-auto px-4">
         <div class="chart-container">
             <canvas id="chart"></canvas>
         </div>
         
         <div class="stats-summary">
-            <h2>Resumen de carrera</h2>
-            <p>Visualización de datos de goles y asistencias por temporada en La Liga</p>
+            <h2 class="text-xl font-bold mb-4">Resumen de carrera</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="font-semibold text-blue-800">Datos generales en La Liga</h3>
+                    <ul class="mt-2 space-y-1">
+                        <li><span class="font-medium">Total de temporadas:</span> 16</li>
+                        <li><span class="font-medium">Máximo de goles en una temporada:</span> 50 (2011-2012)</li>
+                        <li><span class="font-medium">Máximo de asistencias en una temporada:</span> 20 (2019-2020)</li>
+                        <li><span class="font-medium">Promedio de goles por temporada:</span> 27.6</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-red-700">Temporadas destacadas</h3>
+                    <ul class="mt-2 space-y-1">
+                        <li><span class="font-medium">2011-2012:</span> 50 goles, 16 asistencias</li>
+                        <li><span class="font-medium">2012-2013:</span> 46 goles, 11 asistencias</li>
+                        <li><span class="font-medium">2014-2015:</span> 43 goles, 18 asistencias</li>
+                        <li><span class="font-medium">2009-2010:</span> 34 goles, 9 asistencias</li>
+                    </ul>
+                </div>
+            </div>
         </div>
     </main>
     
@@ -29,7 +103,108 @@
         <p>Datos extraídos de estadísticas oficiales de La Liga y Champions League</p>
     </footer>
     
-    <!-- Referencia correcta al script -->
-    <script src="app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const chartCtx = document.getElementById("chart").getContext("2d");
+            
+            // Datos embebidos (para evitar problemas de carga)
+            const messiData = {
+                seasons: ["2004-05", "2005-06", "2006-07", "2007-08", "2008-09", "2009-10", "2010-11", "2011-12", "2012-13", "2013-14", "2014-15", "2015-16", "2016-17", "2017-18", "2018-19", "2019-20"],
+                goals: [1, 6, 14, 10, 23, 34, 31, 50, 46, 28, 43, 26, 37, 34, 36, 25],
+                assists: [0, 3, 3, 12, 11, 9, 19, 16, 11, 11, 18, 16, 9, 12, 13, 20],
+                minutes: [70, 911, 1983, 1973, 2516, 2805, 2858, 3270, 2650, 2501, 3375, 2729, 2828, 3002, 2713, 2880]
+            };
+            
+            createChart(messiData, chartCtx);
+        });
+        
+        function createChart(data, ctx) {
+            const goalColor = 'rgba(165, 0, 68, 0.8)'; // Barça red
+            const assistColor = 'rgba(0, 77, 152, 0.8)'; // Barça blue
+            
+            new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: data.seasons,
+                    datasets: [
+                        {
+                            label: "Goles",
+                            data: data.goals,
+                            backgroundColor: goalColor,
+                            borderColor: goalColor.replace('0.8', '1'),
+                            borderWidth: 1
+                        },
+                        {
+                            label: "Asistencias",
+                            data: data.assists,
+                            backgroundColor: assistColor,
+                            borderColor: assistColor.replace('0.8', '1'),
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Rendimiento de Messi en La Liga por temporada',
+                            font: {
+                                size: 18,
+                                weight: 'bold'
+                            },
+                            padding: {
+                                top: 10,
+                                bottom: 20
+                            }
+                        },
+                        legend: {
+                            position: 'top'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                afterLabel: function(context) {
+                                    const index = context.dataIndex;
+                                    const minutes = data.minutes[index];
+                                    const datasetLabel = context.dataset.label;
+                                    
+                                    if (datasetLabel === "Goles") {
+                                        const goalsPerMin = (data.goals[index] / minutes * 90).toFixed(2);
+                                        return `Goles por 90 min: ${goalsPerMin}`;
+                                    } else {
+                                        const assistsPerMin = (data.assists[index] / minutes * 90).toFixed(2);
+                                        return `Asistencias por 90 min: ${assistsPerMin}`;
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Cantidad'
+                            },
+                            grid: {
+                                display: true,
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Temporada'
+                            },
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
 </body>
 </html>
