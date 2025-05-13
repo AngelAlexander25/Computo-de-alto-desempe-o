@@ -1,10 +1,632 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-  <title>Estadísticas de Messi en el Barça</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Estadísticas de Messi - Barcelona</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .header {
+            background: linear-gradient(135deg, #004d98 0%, #a50044 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .card {
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+            border: none;
+        }
+        .card-header {
+            background-color: #f1f1f1;
+            border-bottom: none;
+            font-weight: bold;
+        }
+        .metric-card {
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            transition: transform 0.3s;
+        }
+        .metric-card:hover {
+            transform: translateY(-5px);
+        }
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .metric-label {
+            font-size: 1rem;
+            color: #6c757d;
+        }
+        .chart-container {
+            position: relative;
+            height: 400px;
+            width: 100%;
+        }
+        #goalsChart, #assistsChart, #efficiencyChart, #competitionChart {
+            max-height: 100%;
+        }
+        .filter-section {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        .barcelona-colors {
+            background: linear-gradient(to right, #004d98, #a50044);
+            height: 5px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        #season-selector, #competition-selector {
+            border-radius: 5px;
+            padding: 8px;
+            border: 1px solid #ced4da;
+            width: 100%;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            color: #6c757d;
+            border-top: 1px solid #dee2e6;
+        }
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            z-index: 1000;
+        }
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+    </style>
 </head>
 <body>
-  <h1>Goles por temporada</h1>
-  <img src="messi_plot.png" alt="Gráfico de goles">
+    <div class="loading" id="loading">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>📊 Dashboard de Estadísticas de Lionel Messi en Barcelona</h1>
+            <p class="lead">Análisis del rendimiento de Messi durante su carrera en FC Barcelona</p>
+        </div>
+
+        <div class="barcelona-colors"></div>
+
+        <div class="row">
+            <div class="col-md-3">
+                <div class="filter-section">
+                    <h4>Filtros</h4>
+                    <div class="mb-3">
+                        <label for="season-selector" class="form-label">Temporada</label>
+                        <select id="season-selector" class="form-select">
+                            <option value="all">Todas las temporadas</option>
+                            <!-- Se llenará dinámicamente -->
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="competition-selector" class="form-label">Competición</label>
+                        <select id="competition-selector" class="form-select">
+                            <option value="all">Todas las competiciones</option>
+                            <!-- Se llenará dinámicamente -->
+                        </select>
+                    </div>
+                    <button id="reset-filters" class="btn btn-outline-secondary w-100">Reiniciar filtros</button>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">Acerca de los datos</div>
+                    <div class="card-body">
+                        <p>Este dashboard utiliza estadísticas oficiales de Lionel Messi durante su etapa en el FC Barcelona.</p>
+                        <p>Los datos incluyen goles, asistencias, minutos jugados y otras métricas por temporada y competición.</p>
+                        <p>Utiliza los filtros para explorar diferentes temporadas y competiciones.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-9">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="card metric-card bg-light">
+                            <div class="metric-label">Goles totales</div>
+                            <div class="metric-value" id="total-goals">-</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card metric-card bg-light">
+                            <div class="metric-label">Asistencias</div>
+                            <div class="metric-value" id="total-assists">-</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card metric-card bg-light">
+                            <div class="metric-label">Partidos jugados</div>
+                            <div class="metric-value" id="total-matches">-</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card metric-card bg-light">
+                            <div class="metric-label">Goles por partido</div>
+                            <div class="metric-value" id="goals-per-match">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">Goles por temporada</div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="goalsChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">Asistencias por temporada</div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="assistsChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">Distribución por competición</div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="competitionChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">Eficiencia (Goles por minuto)</div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="efficiencyChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mt-4">
+                    <div class="card-header">Datos detallados</div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover" id="stats-table">
+                                <thead>
+                                    <tr>
+                                        <th>Temporada</th>
+                                        <th>Competición</th>
+                                        <th>Partidos</th>
+                                        <th>Goles</th>
+                                        <th>Asistencias</th>
+                                        <th>Minutos</th>
+                                        <th>G/90min</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Se llenará dinámicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Datos de Messi en Barcelona · Visualización con Chart.js</p>
+        </div>
+    </div>
+
+    <script>
+        // Datos (simularemos que estos vienen de un archivo JSON)
+        let messiData = []; // Se cargará desde el archivo JSON
+        let filteredData = [];
+        let seasons = [];
+        let competitions = [];
+
+        // Colores de Barcelona para los gráficos
+        const barcelonaColors = [
+            '#004d98', // Azul
+            '#a50044', // Granate
+            '#edbb00', // Dorado
+            '#db0030', // Rojo
+            '#000000', // Negro
+            '#ffed02', // Amarillo
+        ];
+
+        // Cargar los datos
+        async function loadData() {
+            try {
+                // En producción, este sería el path a tu archivo JSON
+                const response = await fetch('messi_data.json');
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                messiData = await response.json();
+                
+                // Inicializar datos
+                filteredData = [...messiData];
+                
+                // Extraer temporadas únicas
+                seasons = [...new Set(messiData.map(item => item.Season))].sort();
+                
+                // Extraer competiciones únicas
+                competitions = [...new Set(messiData.map(item => item.Competition))].sort();
+                
+                // Llenar selectores
+                populateSelectors();
+                
+                // Actualizar dashboard
+                updateDashboard();
+                
+                // Ocultar pantalla de carga
+                document.getElementById('loading').style.display = 'none';
+            } catch (error) {
+                console.error('Error cargando los datos:', error);
+                alert('Error al cargar los datos. Por favor, intenta recargar la página.');
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        // Llenar selectores de filtro
+        function populateSelectors() {
+            const seasonSelector = document.getElementById('season-selector');
+            const competitionSelector = document.getElementById('competition-selector');
+            
+            // Llenar selector de temporadas
+            seasons.forEach(season => {
+                const option = document.createElement('option');
+                option.value = season;
+                option.textContent = season;
+                seasonSelector.appendChild(option);
+            });
+            
+            // Llenar selector de competiciones
+            competitions.forEach(competition => {
+                const option = document.createElement('option');
+                option.value = competition;
+                option.textContent = competition;
+                competitionSelector.appendChild(option);
+            });
+        }
+
+        // Aplicar filtros
+        function applyFilters() {
+            const selectedSeason = document.getElementById('season-selector').value;
+            const selectedCompetition = document.getElementById('competition-selector').value;
+            
+            filteredData = messiData.filter(item => {
+                let matchesSeason = selectedSeason === 'all' || item.Season === selectedSeason;
+                let matchesCompetition = selectedCompetition === 'all' || item.Competition === selectedCompetition;
+                return matchesSeason && matchesCompetition;
+            });
+            
+            updateDashboard();
+        }
+
+        // Reiniciar filtros
+        function resetFilters() {
+            document.getElementById('season-selector').value = 'all';
+            document.getElementById('competition-selector').value = 'all';
+            filteredData = [...messiData];
+            updateDashboard();
+        }
+
+        // Actualizar todas las visualizaciones
+        function updateDashboard() {
+            updateMetrics();
+            updateGoalsChart();
+            updateAssistsChart();
+            updateCompetitionChart();
+            updateEfficiencyChart();
+            updateDataTable();
+        }
+
+        // Actualizar métricas principales
+        function updateMetrics() {
+            const totalGoals = filteredData.reduce((sum, item) => sum + (item['Goals scored'] || 0), 0);
+            const totalAssists = filteredData.reduce((sum, item) => sum + (item['Assists'] || 0), 0);
+            const totalMatches = filteredData.reduce((sum, item) => sum + (item['Matches Played'] || 0), 0);
+            const goalsPerMatch = totalMatches > 0 ? (totalGoals / totalMatches).toFixed(2) : '-';
+            
+            document.getElementById('total-goals').textContent = totalGoals;
+            document.getElementById('total-assists').textContent = totalAssists;
+            document.getElementById('total-matches').textContent = totalMatches;
+            document.getElementById('goals-per-match').textContent = goalsPerMatch;
+        }
+
+        // Actualizar gráfico de goles por temporada
+        function updateGoalsChart() {
+            // Agrupar datos por temporada
+            const seasonData = {};
+            filteredData.forEach(item => {
+                const season = item.Season;
+                if (!seasonData[season]) {
+                    seasonData[season] = 0;
+                }
+                seasonData[season] += item['Goals scored'] || 0;
+            });
+            
+            const seasons = Object.keys(seasonData).sort();
+            const goals = seasons.map(season => seasonData[season]);
+            
+            const ctx = document.getElementById('goalsChart').getContext('2d');
+            
+            // Destruir gráfico anterior si existe
+            if (window.goalsChart) {
+                window.goalsChart.destroy();
+            }
+            
+            window.goalsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: seasons,
+                    datasets: [{
+                        label: 'Goles',
+                        data: goals,
+                        backgroundColor: barcelonaColors[0],
+                        borderColor: barcelonaColors[0],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Actualizar gráfico de asistencias por temporada
+        function updateAssistsChart() {
+            // Agrupar datos por temporada
+            const seasonData = {};
+            filteredData.forEach(item => {
+                const season = item.Season;
+                if (!seasonData[season]) {
+                    seasonData[season] = 0;
+                }
+                seasonData[season] += item['Assists'] || 0;
+            });
+            
+            const seasons = Object.keys(seasonData).sort();
+            const assists = seasons.map(season => seasonData[season]);
+            
+            const ctx = document.getElementById('assistsChart').getContext('2d');
+            
+            // Destruir gráfico anterior si existe
+            if (window.assistsChart) {
+                window.assistsChart.destroy();
+            }
+            
+            window.assistsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: seasons,
+                    datasets: [{
+                        label: 'Asistencias',
+                        data: assists,
+                        backgroundColor: barcelonaColors[1],
+                        borderColor: barcelonaColors[1],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Actualizar gráfico de distribución por competición
+        function updateCompetitionChart() {
+            // Agrupar datos por competición
+            const competitionData = {};
+            filteredData.forEach(item => {
+                const competition = item.Competition;
+                if (!competitionData[competition]) {
+                    competitionData[competition] = 0;
+                }
+                competitionData[competition] += item['Goals scored'] || 0;
+            });
+            
+            const competitions = Object.keys(competitionData);
+            const goals = competitions.map(comp => competitionData[comp]);
+            
+            const ctx = document.getElementById('competitionChart').getContext('2d');
+            
+            // Destruir gráfico anterior si existe
+            if (window.competitionChart) {
+                window.competitionChart.destroy();
+            }
+            
+            // Generar colores para cada competición
+            const backgroundColors = competitions.map((_, index) => 
+                barcelonaColors[index % barcelonaColors.length]
+            );
+            
+            window.competitionChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: competitions,
+                    datasets: [{
+                        label: 'Goles',
+                        data: goals,
+                        backgroundColor: backgroundColors,
+                        borderColor: 'white',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Actualizar gráfico de eficiencia
+        function updateEfficiencyChart() {
+            // Agrupar datos por temporada
+            const efficiencyData = [];
+            
+            // Calcular eficiencia (goles por 90 minutos) para cada temporada
+            const seasonData = {};
+            filteredData.forEach(item => {
+                const season = item.Season;
+                if (!seasonData[season]) {
+                    seasonData[season] = {
+                        goals: 0,
+                        minutes: 0
+                    };
+                }
+                seasonData[season].goals += item['Goals scored'] || 0;
+                seasonData[season].minutes += item['Minutes played'] || 0;
+            });
+            
+            // Calcular eficiencia
+            for (const [season, data] of Object.entries(seasonData)) {
+                if (data.minutes > 0) {
+                    const efficiency = (data.goals / data.minutes) * 90;
+                    efficiencyData.push({
+                        season,
+                        efficiency
+                    });
+                }
+            }
+            
+            // Ordenar por temporada
+            efficiencyData.sort((a, b) => a.season.localeCompare(b.season));
+            
+            const seasons = efficiencyData.map(item => item.season);
+            const efficiencies = efficiencyData.map(item => item.efficiency);
+            
+            const ctx = document.getElementById('efficiencyChart').getContext('2d');
+            
+            // Destruir gráfico anterior si existe
+            if (window.efficiencyChart) {
+                window.efficiencyChart.destroy();
+            }
+            
+            window.efficiencyChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: seasons,
+                    datasets: [{
+                        label: 'Goles por 90 minutos',
+                        data: efficiencies,
+                        borderColor: barcelonaColors[2],
+                        backgroundColor: 'rgba(237, 187, 0, 0.2)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Actualizar tabla de datos
+        function updateDataTable() {
+            const tableBody = document.querySelector('#stats-table tbody');
+            tableBody.innerHTML = '';
+            
+            // Ordenar por temporada y competición
+            const sortedData = [...filteredData].sort((a, b) => {
+                if (a.Season !== b.Season) {
+                    return a.Season.localeCompare(b.Season);
+                }
+                return a.Competition.localeCompare(b.Competition);
+            });
+            
+            sortedData.forEach(item => {
+                const row = document.createElement('tr');
+                
+                // Calcular goles por 90 minutos si es posible
+                let goalsPerMinute = '-';
+                if (item['Minutes played'] && item['Minutes played'] > 0) {
+                    goalsPerMinute = ((item['Goals scored'] / item['Minutes played']) * 90).toFixed(2);
+                }
+                
+                row.innerHTML = `
+                    <td>${item.Season}</td>
+                    <td>${item.Competition}</td>
+                    <td>${item['Matches Played'] || '-'}</td>
+                    <td>${item['Goals scored'] || 0}</td>
+                    <td>${item['Assists'] || 0}</td>
+                    <td>${item['Minutes played'] || '-'}</td>
+                    <td>${goalsPerMinute}</td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Configurar event listeners
+        document.getElementById('season-selector').addEventListener('change', applyFilters);
+        document.getElementById('competition-selector').addEventListener('change', applyFilters);
+        document.getElementById('reset-filters').addEventListener('click', resetFilters);
+
+        // Cargar datos al iniciar
+        window.addEventListener('DOMContentLoaded', loadData);
+    </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
