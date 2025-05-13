@@ -24,13 +24,23 @@ if ! command -v python3 &> /dev/null; then
 fi
 
 # Verificar si pandas está instalado
-python3 -c "import pandas" 2>/dev/null
-if [ $? -ne 0 ]; then
-    echo -e "${BLUE}Instalando pandas...${NC}"
-    pip install pandas
+echo -e "${BLUE}Verificando requisitos de Python...${NC}"
+if [ -f "requirements.txt" ]; then
+    pip install -r requirements.txt
     if [ $? -ne 0 ]; then
-        echo -e "${RED}Error al instalar pandas. Por favor instálalo manualmente: pip install pandas${NC}"
+        echo -e "${RED}Error al instalar las dependencias. Por favor instálalas manualmente: pip install -r requirements.txt${NC}"
         exit 1
+    fi
+    echo -e "${GREEN}✓ Dependencias instaladas correctamente${NC}"
+else
+    python3 -c "import pandas" 2>/dev/null
+    if [ $? -ne 0 ]; then
+        echo -e "${BLUE}Instalando pandas...${NC}"
+        pip install pandas
+        if [ $? -ne 0 ]; then
+            echo -e "${RED}Error al instalar pandas. Por favor instálalo manualmente: pip install pandas${NC}"
+            exit 1
+        fi
     fi
 fi
 
